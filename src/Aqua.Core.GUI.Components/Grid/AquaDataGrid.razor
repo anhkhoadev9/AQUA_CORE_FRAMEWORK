@@ -1,0 +1,24 @@
+@typeparam TItem
+@namespace Shared.GUI.Components
+
+<div class="aqua-datagrid @(IsLoading ? "aqua-loading" : "")">
+    @if (!string.IsNullOrEmpty(ErrorCode))
+    {
+        <div class="alert alert-warning aqua-datagrid-alert" role="alert">
+            <span>@(ErrorMessage ?? ErrorCode)</span>
+        </div>
+    }
+
+    @if (IsLoading)
+    {
+        <div class="aqua-datagrid-spinner">
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            <span>Đang nạp dữ liệu...</span>
+        </div>
+    }
+
+    @if (ChildContent != null)
+    {
+        @ChildContent
+    }
+</div>
