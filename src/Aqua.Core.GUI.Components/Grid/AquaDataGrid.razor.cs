@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 namespace Shared.GUI.Components
 {
     /// <summary>
-    /// Generic Blazor Component AquaDataGrid tuân thủ US-01.1 Tech Spec Section 7
+    /// Generic Blazor Component AquaDataGrid tuân thủ US-01.1 Tech Spec Section 7 & /skill 40
     /// </summary>
     public partial class AquaDataGrid<TItem> : ComponentBase
     {
@@ -40,7 +40,7 @@ namespace Shared.GUI.Components
 
         public async Task InitializeComponentAsync()
         {
-            // 1. Kiểm tra tính hợp lệ của ViewKey
+            // 1. Kiểm tra tính hợp lệ của ViewKey (TC-GRID-1.1-EC02)
             if (string.IsNullOrWhiteSpace(ViewKey))
             {
                 ErrorCode = DomainErrorCodes.ListView.ViewKeyRequired;
@@ -53,7 +53,7 @@ namespace Shared.GUI.Components
                 }
             }
 
-            // 2. Đọc cấu hình theo ViewKey (hoặc lấy fallback)
+            // 2. Đọc cấu hình theo ViewKey (hoặc lấy fallback) (AC-01, AC-02, TC-GRID-1.1-EC01)
             ActiveConfig = ConfigProvider != null
                 ? ConfigProvider.GetConfiguration(ViewKey)
                 : new ViewSpecificConfig();
@@ -68,7 +68,7 @@ namespace Shared.GUI.Components
                 Filters = new Dictionary<string, object>()
             };
 
-            // 4. Nạp Default Filters (nếu có trong cấu hình)
+            // 4. Nạp Default Filters nếu có trong cấu hình (AC-03, TC-GRID-1.1-HP01, HP02)
             if (ActiveConfig.DefaultFilters != null && ActiveConfig.DefaultFilters.Any())
             {
                 foreach (var kvp in ActiveConfig.DefaultFilters)
@@ -90,6 +90,8 @@ namespace Shared.GUI.Components
                 {
                     await OnLoadData(CurrentRequest);
                 }
+
+                // Thực thi nạp dữ liệu tùy theo ActiveConfig.Strategy
                 await LoadDataAsync();
                 InitialLoadExecuted = true;
             }
@@ -100,6 +102,25 @@ namespace Shared.GUI.Components
         }
 
         protected virtual async Task LoadDataAsync()
+        {
+            if (ActiveConfig.Strategy == PaginationStrategy.ClientSide)
+            {
+                // Chiến lược ClientSide (TC-GRID-1.1-HP02): Tải toàn bộ mảng dữ liệu 1 lần vào RAM
+                await LoadClientSideDataAsync();
+            }
+            else
+            {
+                // Chiến lược ServerSide (TC-GRID-1.1-HP01): Đẩy Skip/Take xuống Backend SQL Server
+                await LoadServerSideDataAsync();
+            }
+        }
+
+        protected virtual async Task LoadClientSideDataAsync()
+        {
+            await Task.CompletedTask;
+        }
+
+        protected virtual async Task LoadServerSideDataAsync()
         {
             await Task.CompletedTask;
         }
